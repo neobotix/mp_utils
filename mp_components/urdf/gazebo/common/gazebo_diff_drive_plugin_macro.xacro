@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<!--
+Author: Pradheep Padmanabhan
+Contributor: Adarsh Karan K P
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="mp">
+
+  <!--Gazebo Diff Drive and Joint States Publisher plugin Macro (mp_500 and mp_400)-->
+  <xacro:macro name="gazebo_diff_drive_plugin" params="
+    update_rate
+    joint_prefix
+    wheel_separation
+    wheel_diameter
+    command_topic
+    odometry_topic
+    tf_topic 
+    odom_frame
+    base_frame
+    ">
+
+    <gazebo>
+      <plugin
+        filename="gz-sim-joint-state-publisher-system"
+        name="gz::sim::systems::JointStatePublisher">
+        <joint_name>${joint_prefix}_left_joint</joint_name>
+        <joint_name>${joint_prefix}_right_joint</joint_name>
+        <topic>/joint_states</topic>
+        <update_rate>30</update_rate>
+      </plugin>
+      
+      <plugin filename="gz-sim-diff-drive-system"
+        name="gz::sim::systems::DiffDrive">
+        <left_joint>${joint_prefix}_left_joint</left_joint>
+        <right_joint>${joint_prefix}_right_joint</right_joint>
+        <wheel_separation>${wheel_separation}</wheel_separation>
+        <wheel_radius>${wheel_diameter/2}</wheel_radius>
+        <topic>${command_topic}</topic>
+        <odom_topic>${odometry_topic}</odom_topic>
+        <tf_topic>${tf_topic}</tf_topic>
+        <frame_id>${odom_frame}</frame_id>
+        <child_frame_id>${base_frame}</child_frame_id>
+        <odom_publisher_frequency>${update_rate}</odom_publisher_frequency>
+
+        <max_linear_acceleration>2.4</max_linear_acceleration>
+        <min_linear_acceleration>-2.4</min_linear_acceleration>
+        <max_angular_acceleration>5.0</max_angular_acceleration>
+        <min_angular_acceleration>-5.0</min_angular_acceleration>
+        <max_linear_velocity>3.5</max_linear_velocity>
+        <min_linear_velocity>-3.5</min_linear_velocity>
+        <max_angular_velocity>10.0</max_angular_velocity>
+        <min_angular_velocity>-10.0</min_angular_velocity>
+      </plugin>
+    </gazebo>
+
+  </xacro:macro>
+      
+</robot>

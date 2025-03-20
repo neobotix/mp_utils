@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!--
+Author: Pradheep Padmanabhan
+Contributor: Adarsh Karan K P
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="mp">
+
+  <!--Gazebo Velocity Control Macro (mpo_500 and mpo_700)-->
+  <xacro:macro name="gazebo_object_controller" params="
+    odom_publish_frequency 
+    odom_frame
+    base_frame
+    commandTopic
+    odometryTopic
+    tf_topic
+    ">
+
+    <gazebo>
+      <plugin filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        <topic>${commandTopic}</topic>
+      </plugin>
+    </gazebo>
+
+  </xacro:macro>
+      
+</robot>
