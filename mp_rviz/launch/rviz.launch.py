@@ -2,7 +2,7 @@
 # Contributor: Adarsh Karan K P
 
 import launch
-from ament_index_python.packages import get_package_share_directory
+from ament_index_python.packages import get_package_share_directory, PackageNotFoundError
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import LaunchConfiguration, PythonExpression
@@ -31,76 +31,43 @@ def execution_stage(context: LaunchContext,
     launch_actions = []
 
     # Resolve launch arguments
-    arm_typ = arm_type.perform(context)
-    use_joint_state_publisher_gui = use_joint_state_publisher_gui.perform(context)
-    imu_enabl = imu_enable.perform(context)
-    d435_enabl = d435_enable.perform(context)
-    uss_enabl = uss_enable.perform(context)
-    scanner_typ = scanner_type.perform(context)
-    gripper_typ = gripper_type.perform(context)
-    use_docking_adapter = docking_adapter.perform(context)
-
-    # Robot description package for the default mpo_700 robot
-    robot_description_pkg = get_package_share_directory('neo_mpo_700-2')
-    rviz_config = os.path.join(get_package_share_directory("mp_rviz"), 'rviz', 'robot_description_rviz.rviz')
-
-    # Mapping of robot types to their respective package names
-    robot_type_packages = {
-        'mpo_700': 'neo_mpo_700-2',
-        'mpo_500': 'neo_mpo_500-2',
-        'mp_400': 'neo_mp_400-2',
-        'mp_500': 'neo_mp_500-2'
-    }
-
     robot_typ = str(robot_type.perform(context))
-    if robot_typ in robot_type_packages:
-        robot_description_pkg = get_package_share_directory(robot_type_packages[robot_typ])
+    use_joint_state_publisher_gui = use_joint_state_publisher_gui.perform(context)
+
+    rviz_config = os.path.join(get_package_share_directory("mp_rviz"), 'rviz', 'robot_description_rviz.rviz')
+    """
+    Robot specific packages
+    -> mpo_700: neo_mpo_700-2
+    -> mpo_500: neo_mpo_500-2
+    -> mp_400: neo_mp_400-2
+    -> mp_500: neo_mp_500-2
+    """
+    # Handle invalid robot type condition
+    try:
+        robot_description_pkg = get_package_share_directory(f"neo_{robot_typ}-2")
+    except PackageNotFoundError:
+        print(f"WARNING: Package for {robot_typ} not found, using mpo_700")
+        robot_typ = "mpo_700"
+        # Robot description package for the default mpo_700 robot
+        robot_description_pkg = get_package_share_directory('neo_mpo_700-2')
         
     # Getting the robot description xacro
     urdf = os.path.join(robot_description_pkg, 'robot_model', f'{robot_typ}.urdf.xacro')
     
-    # The urdf arguments are different for each robot type
-    xacro_args_for_robot_type = {
-
-        'mpo_700': {
-            'use_gz': 'true',
-            'arm_type': arm_typ,
-            'use_imu': imu_enabl,
-            'use_d435': d435_enabl,
-            'scanner_type': scanner_typ,
-            'gripper_type': gripper_typ,
-            'force_abs_paths': 'true',
-            'use_docking_adapter': use_docking_adapter
-        },
-
-        'mpo_500': {
-            'use_gz': 'true',
-            'arm_type': arm_typ,
-            'use_imu': imu_enabl,
-            'use_d435': d435_enabl,
-            'scanner_type': scanner_typ,
-            'gripper_type': gripper_typ,
-            'force_abs_paths': 'true',
-        },
-
-        'mp_500': {
-            'use_gz': 'true',
-            'use_imu': imu_enabl,
-            'use_uss': uss_enabl,
-            'scanner_type': scanner_typ,
-        },
-
-        'mp_400': {
-            'use_gz': 'true',
-            'use_imu': imu_enabl,
-            'use_d435': d435_enabl,
-            'use_uss': uss_enabl,
-            'scanner_type': scanner_typ,
-        }
+    xacro_args = {
+        'use_gz': 'true', # To force set fixed wheel joints
+        'arm_type': arm_type.perform(context),
+        'use_imu': imu_enable.perform(context),
+        'use_d435': d435_enable.perform(context),
+        'use_uss': uss_enable.perform(context),
+        'scanner_type': scanner_type.perform(context),
+        'gripper_type': gripper_type.perform(context),
+        'force_abs_paths': 'true',
+        'use_docking_adapter': docking_adapter.perform(context)
     }
 
     # Get the robot description xacro file based on the robot type
-    robot_description_file = xacro.process_file(urdf,mappings=xacro_args_for_robot_type[robot_typ]).toxml()
+    robot_description_file = xacro.process_file(urdf,mappings=xacro_args).toxml()
 
     # Start the joint state publisher gui only if use_joint_state_publisher_gui is True
     start_joint_state_publisher_gui_cmd = Node(
@@ -164,13 +131,13 @@ def generate_launch_description():
             'robot_type', 
             default_value='mpo_700',
             choices=['', 'mpo_700', 'mpo_500', 'mp_400', 'mp_500'],
-            description='Robot Types'
+            description='Robot Types\n\t'
         )
     
     declare_arm_type_cmd = DeclareLaunchArgument(
             'arm_type', default_value='',
             choices=['', 'ur5', 'ur10', 'ur5e', 'ur10e', 'ec66', 'cs66'],
-            description='Supported Arm Types'       
+            description='Arm Types - Supported Robots [mpo-700, mpo-500]\n\t'       
         )
     
     declare_use_imu_cmd = DeclareLaunchArgument(
@@ -178,31 +145,34 @@ def generate_launch_description():
             description='Enable IMU sensors if true'
         )
 
-    declare_use_d435_cmd = DeclareLaunchArgument(
+    declare_realsense_cmd = DeclareLaunchArgument(
             'use_d435', default_value='false',
-            description='Enable Intel RealSense D435 camera if true'
+            description='Enable Intel RealSense D435 camera if true\n'
+                        '\tSupported Robots [mpo-700, mpo-500, mp-400]'
         )
     
     declare_use_uss_cmd = DeclareLaunchArgument(
             'use_uss', default_value='false',
-            description='Enable Ultrasonic sensors if true'
+            description='Enable Ultrasonic sensors if true\n'
+                        '\tSupported Robots [mp-500, mp-400]'
         )
     
     declare_scanner_type_cmd = DeclareLaunchArgument(
             'scanner_type', default_value='sick_s300',
             choices=['sick_s300', 'sick_microscan3'],
-            description='Type of laser scanner to use'
+            description='Type of laser scanner to use\n\t'
         )
     
     declare_gripper_type_cmd = DeclareLaunchArgument(
             'gripper_type', default_value='',
             choices=['', '2f_140', '2f_85', 'epick'],
-            description='Type of gripper to use'
+            description='Gripper Types - Supported Robots [mpo-700, mpo-500]\n\t'
         )
 
     declare_use_docking_adapter_cmd = DeclareLaunchArgument(
             'use_docking_adapter', default_value='false',
-            description='Enable docking adapter if true'
+            description='Enable docking adapter if true\n'
+                        '\tSupported Robots [mpo-700]'
         )
 
     opq_function = OpaqueFunction(
@@ -226,7 +196,7 @@ def generate_launch_description():
         declare_robot_type_arg,
         declare_arm_type_cmd,
         declare_use_imu_cmd,
-        declare_use_d435_cmd,
+        declare_realsense_cmd,
         declare_use_uss_cmd,
         declare_scanner_type_cmd,
         declare_gripper_type_cmd,
