@@ -5,36 +5,64 @@ Contributor: Adarsh Karan K P
 -->
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="elite">
 
-  <!-- create arm from macro-->
-  <xacro:include filename="$(find ur_description)/urdf/ur_macro.xacro"/>
-  
-  <xacro:arg name="arm_type" default="ec66"/>
-  <xacro:arg name="use_gazebo" default="true"/>
+  <!-- Set use_gz = true for simulation -->
+  <xacro:arg name="use_gz" default="false"/>
 
-  <!--Elite arm parameters-->
+  <!-- arm parameters -->
+  <xacro:arg name="arm_type" default="ec66"/>
+
+  <!-- Include macros -->
+  <xacro:include filename="$(find elite_description)/urdf/xacros/elite_macro.xacro" />
+
+  <!--Elite arm parameters -->
   <xacro:arg name="tf_prefix" default="$(arg arm_type)"/>
   <xacro:arg name="joint_limit_params_file" default="$(find elite_description)/config/$(arg arm_type)/joint_limits.yaml"/>
   <xacro:arg name="joint_origin_params_file" default="$(find elite_description)/config/$(arg arm_type)/joint_origins.yaml"/>
   <xacro:arg name="link_inertials_params_file" default="$(find elite_description)/config/$(arg arm_type)/link_inertials.yaml"/>
+  
+  <!-- initial positions file for Elite arm-->
   <xacro:arg name="initial_joint_positions_file" default="$(find elite_description)/config/$(arg arm_type)/initial_positions.yaml"/>
 
-  <!-- create arm -->
-  <xacro:include filename="$(find elite_description)/urdf/macro/elite_macro.xacro" />
+  <!-- Load parameters from YAML file -->
+  <xacro:property 
+    name="elite_initial_positions" 
+    value="${xacro.load_yaml('$(arg initial_joint_positions_file)')}"
+    />
+
   <xacro:elite_robot 
     name="$(arg arm_type)"
     tf_prefix="$(arg tf_prefix)"
-    arm_parent="cabinet_link"
+    parent="$(arg arm_parent)"
     joint_limits_parameters_file="$(arg joint_limit_params_file)"
-    joint_origins_parameters_file="$(arg joint_origin_params_file)"
-    link_inertials_parameters_file="$(arg link_inertials_params_file)"
+    kinematics_parameters_file="$(arg kinematics_params_file)"
+    physical_parameters_file="$(arg physical_params_file)"
     >
     <origin xyz="0.133 0.0 0.416" rpy="0.0 0.0 -1.5708" />
   </xacro:elite_robot>
 
-  <!-- If both Elite Arm and Simulation is used -->
-  <xacro:if value="$(arg use_gazebo)">
-    <xacro:include filename="$(find elite_description)/urdf/elite_gazebo_ros2_control.urdf.xacro" />
-  </xacro:if>  
+  <!-- If gz simulation is used -->
+  <xacro:if value="$(arg use_gz)">
+
+    <xacro:include filename="$(find elite_description)/urdf/macro/elite_ros2_control_macro.xacro" />
+
+    <xacro:arg name="simulation_controllers" default="$(find rox_bringup)/configs/elite/$(arg arm_type)/elite_controllers.yaml"/>
+    
+    <gazebo reference="$(arg arm_parent)">
+    </gazebo>
+    <gazebo>
+      <plugin name="gz_ros2_control::GazeboSimROS2ControlPlugin" filename="libgz_ros2_control-system">
+        <parameters>$(arg simulation_controllers)</parameters>
+      </plugin>
+    </gazebo>
+
+    <!-- Use the Elite_ros2_control macro -->
+    <xacro:elite_ros2_control 
+      name="GazeboSimSystem"
+      tf_prefix="$(arg tf_prefix)" 
+      plugin="gz_ros2_control/GazeboSimSystem"
+      parameters="$(arg simulation_controllers)"
+      initial_positions="${elite_initial_positions}"
+      />
+  </xacro:if>
 
 </robot>
-

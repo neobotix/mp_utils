@@ -9,7 +9,7 @@ Contributor: Adarsh Karan K P
 
     <joint name="${name}_joint" type="fixed">
       <xacro:insert_block name="origin"/>
-      <joint_properties damping="1" friction="1"/>
+      <dynamics damping="1" friction="1"/>
       <parent link="${parent}"/>
       <child link="${name}_link"/>
     </joint>

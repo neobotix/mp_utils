@@ -223,7 +223,7 @@ def generate_launch_description():
         )
     
     declare_use_uss_cmd = DeclareLaunchArgument(
-            'use_uss', default_value='false',
+            'use_uss', default_value='False',
             description='Enable Ultrasonic sensors if true\n'
                         '\tSupported Robots [mp-500, mp-400]'
         )
@@ -241,7 +241,7 @@ def generate_launch_description():
         )
 
     declare_use_docking_adapter_cmd = DeclareLaunchArgument(
-            'use_docking_adapter', default_value='false',
+            'use_docking_adapter', default_value='False',
             description='Enable docking adapter if true\n'
                         '\tSupported Robots [mpo-700]'
         )
