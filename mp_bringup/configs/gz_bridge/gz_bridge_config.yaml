@@ -1,18 +1,3 @@
- # Set just topic name, applies to both
-# - topic_name: "chatter"
-#   ros_type_name: "std_msgs/msg/String"
-#   gz_type_name: "ignition.msgs.StringMsg"
-
-# Set just ROS topic name, applies to both
-# - ros_topic_name: "cmd_vel"
-#   ros_type_name: "geometry_msgs::msg::Twist"
-#   gz_type_name: "ignition.msgs.StringMsg"
-
-# Set just GZ topic name, applies to both
-# - gz_topic_name: "chatter_ign"
-#   ros_type_name: "std_msgs/msg/String"
-#   gz_type_name: "ignition.msgs.StringMsg"
-
 # Odom
 - ros_topic_name: "/odom"
   gz_topic_name: "/odom"
