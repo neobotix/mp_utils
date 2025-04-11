@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+Author: Pradheep Padmanabhan
+Contributor: Adarsh Karan K P
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="mp_500">
+
+  <!--Gazebo Wheel Macro-->
+  <xacro:macro name="gazebo_mp_500_caster_wheel" params="wheel_prefix">
+
+    <gazebo reference="${wheel_prefix}_link">
+      <kp>1000.0</kp>
+      <kd>10.0</kd>
+      <mu1>0.001</mu1>
+      <mu2>0.001</mu2>
+      <fdir1>1 0 0</fdir1>
+    </gazebo>
+    
+  </xacro:macro>
+
+</robot>

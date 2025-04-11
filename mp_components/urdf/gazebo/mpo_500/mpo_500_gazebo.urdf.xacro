@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<!--
+Author: Pradheep Padmanabhan
+Contributor: Adarsh Karan K P
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="mpo_500">
+
+  <!-- Include macros -->
+  <xacro:include filename="$(find mp_components)/urdf/gazebo/common/gazebo_lidar_macro.xacro" />
+  <xacro:include filename="$(find mp_components)/urdf/gazebo/common/gazebo_object_controller_macro.xacro" />
+  <xacro:include filename="$(find mp_components)/urdf/gazebo/mpo_500/gazebo_mpo_500_wheel_macro.xacro" />
+  
+  <xacro:property name="imu" value="False"/>
+  <!--Gazebo Plugins-->
+  <xacro:macro name="mpo_500_gazebo">
+
+    <gazebo>
+      <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      </plugin>
+
+      <plugin filename="gz-sim-odometry-publisher-system" name="gz::sim::systems::OdometryPublisher">
+        <odom_frame>odom</odom_frame> 
+        <odom_covariance_topic>odom</odom_covariance_topic>
+        <tf_topic>tf</tf_topic>
+        <robot_base_frame>base_link</robot_base_frame>
+        <odom_publish_frequency>100</odom_publish_frequency>
+      </plugin>
+    </gazebo>
+
+    <!--Object Controller-->
+    <xacro:gazebo_object_controller 
+      odom_publish_frequency="100" 
+      odom_frame="odom"
+      odometryTopic="odom"
+      base_frame="base_link"
+      commandTopic="cmd_vel"
+      tf_topic="tf"
+      />
+    <!--Lidar Sensors-->
+    <xacro:gazebo_lidar_sensor
+      sensor_name="lidar_1_sensor"
+      link_name="lidar_1_link"
+      update_rate="100"
+      min_range="0.10"
+      max_range="30.0"
+      horizontal_samples="720"
+      min_angle="-1.48"
+      max_angle="1.48"
+      noise_mean="0.0"
+      noise_stddev="0.01"
+      topic_name="scan"
+      visualize="false"
+      />
+    <xacro:gazebo_lidar_sensor
+      sensor_name="lidar_2_sensor"
+      link_name="lidar_2_link"
+      update_rate="100"
+      min_range="0.10"
+      max_range="30.0"
+      horizontal_samples="720"
+      min_angle="-1.48"
+      max_angle="1.48"
+      noise_mean="0.0"
+      noise_stddev="0.01"
+      topic_name="scan2"
+      visualize="true"
+      />
+    
+    <!-- IMU Sensor -->
+    <xacro:if value="${imu == 'True'}">
+      <gazebo>
+        <plugin filename="gz-sim-imu-system"
+          name="gz::sim::systems::Imu">
+        </plugin>
+        <sensor name="imu_sensor" type="imu">
+          <gz_frame_id>imu_link</gz_frame_id>
+          <update_rate>50</update_rate>
+          <visualize>false</visualize>
+          <topic>imu</topic>
+          <always_on>true</always_on>
+        </sensor>
+      </gazebo>
+    </xacro:if>
+
+    <!--Wheels-->
+    <xacro:gazebo_mpo_500_wheel
+      wheel_prefix="mpo_500_wheel_front_right" 
+      />
+    <xacro:gazebo_mpo_500_wheel
+      wheel_prefix="mpo_500_wheel_back_right" 
+      />
+    <xacro:gazebo_mpo_500_wheel
+      wheel_prefix="mpo_500_wheel_front_left" 
+      />
+    <xacro:gazebo_mpo_500_wheel
+      wheel_prefix="mpo_500_wheel_back_left" 
+      />
+          
+  </xacro:macro>
+
+</robot>
