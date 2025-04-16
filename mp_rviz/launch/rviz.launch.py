@@ -16,10 +16,10 @@ import xacro
 This code is used for debugging, quick testing, and visualization of the robot with arm and gripper in Rviz. 
 """
 
-def execution_stage(context: LaunchContext, 
-                    use_sim_time, 
-                    use_joint_state_publisher_gui, 
-                    robot_type, 
+def execution_stage(context: LaunchContext,
+                    use_sim_time,
+                    use_joint_state_publisher_gui,
+                    robot_type,
                     arm_type,
                     imu_enable,
                     d435_enable,

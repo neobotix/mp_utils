@@ -5,9 +5,11 @@
 import launch
 from ament_index_python.packages import get_package_share_directory, PackageNotFoundError
 from launch import LaunchDescription, LaunchContext
-from launch.actions import (DeclareLaunchArgument, IncludeLaunchDescription,
-                            OpaqueFunction)
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, AppendEnvironmentVariable
+from launch.actions import (
+    DeclareLaunchArgument, 
+    IncludeLaunchDescription,
+    AppendEnvironmentVariable,
+    OpaqueFunction)
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
@@ -33,11 +35,12 @@ def execution_stage(context: LaunchContext,
     robot_typ = str(robot_type.perform(context))
     world_name = str(world.perform(context))
     arm_typ = arm_type.perform(context)
+    gripper_typ = str(gripper_type.perform(context))
     use_sim_time = True
 
-    bridge_dir = get_package_share_directory('mp_bringup')
+    bringup_dir = get_package_share_directory('mp_bringup')
     default_world_path = os.path.join(get_package_share_directory('neo_gz_worlds'), 'worlds', f'{world_name}.sdf')
-    bridge_config_file = os.path.join(bridge_dir, 'configs/gz_bridge', 'gz_bridge_config.yaml')
+    bridge_config_file = os.path.join(bringup_dir, 'configs/gz_bridge', 'gz_bridge_config.yaml')
 
     """
     Robot specific packages
@@ -69,9 +72,9 @@ def execution_stage(context: LaunchContext,
             arm_manufacturer = 'ur'
 
         controllers_yaml = os.path.join(
-            bridge_dir,
-            'configs', 
-            arm_manufacturer, 
+            bringup_dir,
+            'configs',
+            arm_manufacturer,
             'controllers.yaml'
         )
 
@@ -85,6 +88,21 @@ def execution_stage(context: LaunchContext,
         )
         launch_actions.extend(shutdown_handler)
 
+        gripper_category = None
+        if gripper_typ:
+            if gripper_typ == 'epick':
+                gripper_category = 'epick'
+            elif gripper_typ in ['2f_140', '2f_85']:
+                gripper_category = 'robotiq'
+
+            gripper_simulation_controllers = os.path.join(
+                bringup_dir,
+                'configs',
+                gripper_category,
+                'gripper_controllers.yaml'
+            )
+        else:
+            gripper_simulation_controllers = ""
     else:
         simulation_controllers = ""
 
@@ -99,6 +117,7 @@ def execution_stage(context: LaunchContext,
         'gripper_type': gripper_type.perform(context),
         'force_abs_paths': 'true',
         'simulation_controllers': simulation_controllers,
+        'gripper_simulation_controllers': gripper_simulation_controllers,
         'use_docking_adapter': docking_adapter.perform(context)
     }
 
@@ -146,6 +165,7 @@ def execution_stage(context: LaunchContext,
         output='screen',
         parameters=[{'config_file': bridge_config_file}])
 
+    # Arm specific nodes
     joint_state_broadcaster_spawner = Node(
         package="controller_manager",
         executable="spawner",
@@ -158,6 +178,27 @@ def execution_stage(context: LaunchContext,
         arguments=[initial_joint_controller_name, "-c", "/controller_manager"],
     )
 
+    # Gripper specific nodes
+    robotiq_gripper_joint_state_broadcaster_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["gripper_joint_state_broadcaster", "-c", "/controller_manager"],
+    )
+
+    robotiq_gripper_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["robotiq_gripper_controller", "-c", 
+            "/controller_manager"]
+    )
+
+    robotiq_activation_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["robotiq_activation_controller", "-c", 
+            "/controller_manager"],
+    )
+
     # Set environment variable
     env_var_value = (
         os.path.join(get_package_share_directory('neo_gz_worlds'), 'models') +
@@ -166,10 +207,19 @@ def execution_stage(context: LaunchContext,
         ':' +
         os.path.dirname(get_package_share_directory('mp_components'))
     )
-    if arm_typ == 'ec66' or arm_typ == 'cs66':
-        env_var_value += ':' + os.path.dirname(get_package_share_directory('elite_description'))
-    if arm_typ == 'ur5' or arm_typ == 'ur10' or arm_typ == 'ur5e' or arm_typ == 'ur10e':
-        env_var_value += ':' + os.path.dirname(get_package_share_directory('ur_description'))
+
+    if arm_typ:
+        # Set environment variable for arm description packages
+        if arm_typ == 'ec66' or arm_typ == 'cs66':
+            env_var_value += ':' + os.path.dirname(get_package_share_directory('elite_description'))
+        elif arm_typ == 'ur5' or arm_typ == 'ur10' or arm_typ == 'ur5e' or arm_typ == 'ur10e':
+            env_var_value += ':' + os.path.dirname(get_package_share_directory('ur_description'))
+        # Set environment variable for gripper description packages
+        if gripper_typ == 'epick':
+            env_var_value += ':' + os.path.dirname(get_package_share_directory('epick_description'))
+        else:
+            env_var_value += ':' + os.path.dirname(get_package_share_directory('robotiq_description'))
+            
     set_env_vars_resources = AppendEnvironmentVariable('GZ_SIM_RESOURCE_PATH', env_var_value)
 
     launch_actions.append(set_env_vars_resources)
@@ -182,6 +232,10 @@ def execution_stage(context: LaunchContext,
     if arm_typ != '':
         launch_actions.append(joint_state_broadcaster_spawner)
         launch_actions.append(initial_joint_controller_spawner_started)
+        if gripper_typ == '2f_140' or gripper_typ == '2f_85':
+            launch_actions.append(robotiq_gripper_joint_state_broadcaster_spawner)
+            launch_actions.append(robotiq_gripper_controller_spawner)
+            launch_actions.append(robotiq_activation_controller_spawner)
 
     return launch_actions
 
@@ -274,5 +328,3 @@ def generate_launch_description():
         declare_use_docking_adapter_cmd,
         opq_function
     ])
-
-
