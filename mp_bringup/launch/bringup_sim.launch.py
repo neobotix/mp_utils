@@ -42,6 +42,9 @@ def execution_stage(context: LaunchContext,
     default_world_path = os.path.join(get_package_share_directory('neo_gz_worlds'), 'worlds', f'{world_name}.sdf')
     bridge_config_file = os.path.join(bringup_dir, 'configs/gz_bridge', 'gz_bridge_config.yaml')
 
+    include_gripper_ros2_control = "false"
+    include_arm_ros2_control = "false"
+
     """
     Robot specific packages
     -> mpo_700: neo_mpo_700-2
@@ -65,6 +68,7 @@ def execution_stage(context: LaunchContext,
     arm_manufacturer = None
     initial_joint_controller_name = "joint_trajectory_controller"
     if arm_typ:
+        include_arm_ros2_control = "true"
         if arm_typ in ['ec66', 'cs66']:
             arm_manufacturer = 'elite'
             initial_joint_controller_name = 'arm_controller'
@@ -87,22 +91,18 @@ def execution_stage(context: LaunchContext,
             cleanup_enabled=False
         )
         launch_actions.extend(shutdown_handler)
-
-        gripper_category = None
+        initial_gripper_controller_name = None
         if gripper_typ:
+            include_gripper_ros2_control = "true"
+            gripper_category = None
             if gripper_typ == 'epick':
                 gripper_category = 'epick'
+                initial_gripper_controller_name = 'epick_controller'
             elif gripper_typ in ['2f_140', '2f_85']:
                 gripper_category = 'robotiq'
+                initial_gripper_controller_name = f'robotiq_{gripper_typ}_gripper_controller'
+            include_gripper_ros2_control = "true"
 
-            gripper_simulation_controllers = os.path.join(
-                bringup_dir,
-                'configs',
-                gripper_category,
-                'gripper_controllers.yaml'
-            )
-        else:
-            gripper_simulation_controllers = ""
     else:
         simulation_controllers = ""
 
@@ -117,8 +117,9 @@ def execution_stage(context: LaunchContext,
         'gripper_type': gripper_type.perform(context),
         'force_abs_paths': 'true',
         'simulation_controllers': simulation_controllers,
-        'gripper_simulation_controllers': gripper_simulation_controllers,
-        'use_docking_adapter': docking_adapter.perform(context)
+        'use_docking_adapter': docking_adapter.perform(context),
+        'include_arm_ros2_control': include_arm_ros2_control,
+        'include_gripper_ros2_control': include_gripper_ros2_control,
     }
 
     # Get the robot description xacro file based on the robot type
@@ -149,7 +150,7 @@ def execution_stage(context: LaunchContext,
                     'robot_description': robot_description_file}]
     )
 
-    teleop =  Node(
+    teleop = Node(
         package='teleop_twist_keyboard',
         executable="teleop_twist_keyboard",
         output='screen',
@@ -169,7 +170,7 @@ def execution_stage(context: LaunchContext,
     joint_state_broadcaster_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["joint_state_broadcaster", "-c", "/controller_manager"],
+        arguments=["joint_state_broadcaster", "-c", "/controller_manager",  "--controller-manager-timeout", "60"],
     )
 
     initial_joint_controller_spawner_started = Node(
@@ -178,25 +179,10 @@ def execution_stage(context: LaunchContext,
         arguments=[initial_joint_controller_name, "-c", "/controller_manager"],
     )
 
-    # Gripper specific nodes
-    robotiq_gripper_joint_state_broadcaster_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["gripper_joint_state_broadcaster", "-c", "/controller_manager"],
-    )
-
     robotiq_gripper_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["robotiq_gripper_controller", "-c", 
-            "/controller_manager"]
-    )
-
-    robotiq_activation_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["robotiq_activation_controller", "-c", 
-            "/controller_manager"],
+        arguments=[initial_gripper_controller_name, "-c", "/controller_manager"]
     )
 
     # Set environment variable
@@ -233,9 +219,7 @@ def execution_stage(context: LaunchContext,
         launch_actions.append(joint_state_broadcaster_spawner)
         launch_actions.append(initial_joint_controller_spawner_started)
         if gripper_typ == '2f_140' or gripper_typ == '2f_85':
-            launch_actions.append(robotiq_gripper_joint_state_broadcaster_spawner)
             launch_actions.append(robotiq_gripper_controller_spawner)
-            launch_actions.append(robotiq_activation_controller_spawner)
 
     return launch_actions
 

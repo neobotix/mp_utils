@@ -59,7 +59,6 @@ Contributor: Adarsh Karan K P
     <origin xyz="0.133 0.0 0.416" rpy="0.0 0.0 -1.5708" />
   </xacro:ur_robot>
 
-
   <!-- this condition is to ensure that ros2_control doesn't interfere with gz_ros2_control during simulation  -->
   <xacro:unless value="$(arg use_gz)">
     <xacro:if value="$(arg include_arm_ros2_control)">

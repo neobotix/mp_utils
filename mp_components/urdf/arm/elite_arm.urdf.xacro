@@ -18,6 +18,8 @@ Contributor: Adarsh Karan K P
   <xacro:arg name="tf_prefix" default="$(arg arm_type)"/>
   <xacro:arg name="joint_limit_params_file" default="$(find elite_description)/config/$(arg arm_type)/joint_limits.yaml"/>
   <xacro:arg name="joint_origin_params_file" default="$(find elite_description)/config/$(arg arm_type)/joint_origins.yaml"/>
+  <xacro:arg name="kinematics_params_file" default="$(find elite_description)/config/$(arg arm_type)/kinematics.yaml"/>
+  <xacro:arg name="physical_params_file" default="$(find elite_description)/config/$(arg arm_type)/physical_parameters.yaml"/>
   <xacro:arg name="link_inertials_params_file" default="$(find elite_description)/config/$(arg arm_type)/link_inertials.yaml"/>
   
   <!-- initial positions file for Elite arm-->
@@ -43,7 +45,7 @@ Contributor: Adarsh Karan K P
   <!-- If gz simulation is used -->
   <xacro:if value="$(arg use_gz)">
 
-    <xacro:include filename="$(find elite_description)/urdf/macro/elite_ros2_control_macro.xacro" />
+    <xacro:include filename="$(find elite_description)/urdf/xacros/elite_ros2_control_macro.xacro" />
 
     <xacro:arg name="simulation_controllers" default="$(find rox_bringup)/configs/elite/$(arg arm_type)/elite_controllers.yaml"/>
     
