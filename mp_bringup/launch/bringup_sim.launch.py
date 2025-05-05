@@ -67,6 +67,7 @@ def execution_stage(context: LaunchContext,
     # Simulation Controllers for the arm
     arm_manufacturer = None
     initial_joint_controller_name = "joint_trajectory_controller"
+    initial_gripper_controller_name = ""
     if arm_typ:
         include_arm_ros2_control = "true"
         if arm_typ in ['ec66', 'cs66']:
@@ -91,7 +92,6 @@ def execution_stage(context: LaunchContext,
             cleanup_enabled=False
         )
         launch_actions.extend(shutdown_handler)
-        initial_gripper_controller_name = None
         if gripper_typ:
             include_gripper_ros2_control = "true"
             gripper_category = None
