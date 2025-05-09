@@ -28,7 +28,7 @@ def execution_stage(context: LaunchContext,
                     scanner_type,
                     gripper_type,
                     docking_adapter):    
-    
+
     launch_actions = []
 
     # Resolve launch arguments
@@ -60,10 +60,10 @@ def execution_stage(context: LaunchContext,
         robot_typ = "mpo_700"
         # Robot description package for the default mpo_700 robot
         robot_description_pkg = get_package_share_directory('neo_mpo_700-2')
-        
+
     # Getting the robot description xacro
     urdf = os.path.join(robot_description_pkg, 'robot_model', f'{robot_typ}.urdf.xacro')
-    
+
     # Simulation Controllers for the arm
     arm_manufacturer = None
     initial_joint_controller_name = "joint_trajectory_controller"
@@ -92,6 +92,7 @@ def execution_stage(context: LaunchContext,
             cleanup_enabled=False
         )
         launch_actions.extend(shutdown_handler)
+
         if gripper_typ:
             include_gripper_ros2_control = "true"
             gripper_category = None
@@ -158,7 +159,7 @@ def execution_stage(context: LaunchContext,
         name='teleop',
         parameters=[{'stamped': True}]  # Set stamped parameter to true for TwistStamped /cmd_vel
     )
-  
+
     gz_bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
@@ -205,7 +206,7 @@ def execution_stage(context: LaunchContext,
             env_var_value += ':' + os.path.dirname(get_package_share_directory('epick_description'))
         else:
             env_var_value += ':' + os.path.dirname(get_package_share_directory('robotiq_description'))
-            
+
     set_env_vars_resources = AppendEnvironmentVariable('GZ_SIM_RESOURCE_PATH', env_var_value)
 
     launch_actions.append(set_env_vars_resources)
@@ -228,14 +229,14 @@ def generate_launch_description():
     declare_namespace_cmd = DeclareLaunchArgument(
             'robot_namespace', default_value='', description='Top-level namespace'
         )
-    
+
     declare_robot_type_arg = DeclareLaunchArgument(
             'robot_type', 
             default_value='mpo_700',
             choices=['', 'mpo_700', 'mpo_500', 'mp_400', 'mp_500'],
             description='Robot Types\n\t'
         )
-    
+
     declare_world_name_arg = DeclareLaunchArgument(
             'world',
             default_value='neo_workshop',
@@ -248,33 +249,33 @@ def generate_launch_description():
             choices=['', 'ur5', 'ur10', 'ur5e', 'ur10e', 'ec66', 'cs66'],
             description='Arm Types - Supported Robots [mpo-700, mpo-500]\n\t'        
         )
-    
+
     declare_imu_cmd = DeclareLaunchArgument(
             'imu_enable', default_value='False',
             description='Enable IMU - Options: True/False'
         )
-    
+
     declare_realsense_cmd = DeclareLaunchArgument(
             'd435_enable', default_value='False',
             description='Enable Intel RealSense D435 camera if true\n'
                         '\tSupported Robots [mpo-700, mpo-500, mp-400]'
         )
-    
+
     declare_use_uss_cmd = DeclareLaunchArgument(
             'use_uss', default_value='False',
             description='Enable Ultrasonic sensors if true\n'
                         '\tSupported Robots [mp-500, mp-400]'
         )
-    
+
     declare_scanner_type_cmd = DeclareLaunchArgument(
             'scanner_type', default_value='sick_s300',
             choices=['', 'sick_s300', 'sick_microscan3'],
             description='Type of laser scanner to use\n\t'
         )
-    
+
     declare_gripper_type_cmd = DeclareLaunchArgument(
             'gripper_type', default_value='',
-            choices=['', '2f_140', '2f_85', 'epick'],
+            choices=['', '2f_140', '2f_85'],
             description='Gripper Types - Supported Robots [mpo-700, mpo-500]\n\t'
         )
 
@@ -298,7 +299,7 @@ def generate_launch_description():
             LaunchConfiguration('gripper_type'),
             LaunchConfiguration('use_docking_adapter')
         ])
-    
+
     return LaunchDescription([
         declare_namespace_cmd,
         declare_robot_type_arg,
