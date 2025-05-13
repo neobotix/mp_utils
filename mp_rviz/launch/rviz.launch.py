@@ -181,8 +181,8 @@ def generate_launch_description():
         )
 
     declare_use_display_mode_cmd = DeclareLaunchArgument(
-            'display_mode', default_value='false',
-            description='Enable robot and joint state publishers if true\n'
+            'display_mode', default_value='False',
+            description='Enable robot and joint state publishers if true (True/False)\n'
         )
 
     opq_function = OpaqueFunction(
