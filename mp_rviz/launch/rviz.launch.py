@@ -26,13 +26,15 @@ def execution_stage(context: LaunchContext,
                     uss_enable,
                     scanner_type,
                     gripper_type,
-                    docking_adapter):
+                    docking_adapter,
+                    display_mode):
     
     launch_actions = []
 
     # Resolve launch arguments
     robot_typ = str(robot_type.perform(context))
     use_joint_state_publisher_gui = use_joint_state_publisher_gui.perform(context)
+    display_mod = display_mode.perform(context)
 
     rviz_config = os.path.join(get_package_share_directory("mp_rviz"), 'rviz', 'robot_description_rviz.rviz')
     """
@@ -69,33 +71,39 @@ def execution_stage(context: LaunchContext,
     # Get the robot description xacro file based on the robot type
     robot_description_file = xacro.process_file(urdf,mappings=xacro_args).toxml()
 
-    # Start the joint state publisher gui only if use_joint_state_publisher_gui is True
     start_joint_state_publisher_gui_cmd = Node(
         package='joint_state_publisher_gui',
         executable='joint_state_publisher_gui',
-        condition=IfCondition(use_joint_state_publisher_gui),
+        condition=IfCondition(PythonExpression([use_joint_state_publisher_gui, ' and ', display_mod])),
         name='joint_state_publisher_gui',
         output='screen',
         parameters=[{'use_sim_time': use_sim_time}],
     )
 
+    launch_actions.append(start_joint_state_publisher_gui_cmd)
+
     start_joint_state_publisher_cmd = Node(
         package='joint_state_publisher',
         executable='joint_state_publisher',
-        condition=IfCondition(PythonExpression(['not ', use_joint_state_publisher_gui])),
+        condition=IfCondition(PythonExpression(['not ', use_joint_state_publisher_gui, ' and ', display_mod])),
         name='joint_state_publisher',
         output='screen',
         parameters=[{'use_sim_time': use_sim_time}],
     )
 
+    launch_actions.append(start_joint_state_publisher_cmd)
+
     start_robot_state_publisher_cmd = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
+        condition=IfCondition(PythonExpression([display_mod])),
         name='robot_state_publisher',
         output='screen',
         parameters=[{'use_sim_time': use_sim_time, 
                     'robot_description': robot_description_file}]
     )
+
+    launch_actions.append(start_robot_state_publisher_cmd)
 
     # Rviz node
     start_rviz_cmd = Node(
@@ -107,9 +115,6 @@ def execution_stage(context: LaunchContext,
     )
 
     launch_actions.append(start_rviz_cmd)
-    launch_actions.append(start_robot_state_publisher_cmd)
-    launch_actions.append(start_joint_state_publisher_cmd)
-    launch_actions.append(start_joint_state_publisher_gui_cmd)
 
     return launch_actions
 
@@ -121,25 +126,25 @@ def generate_launch_description():
             'use_sim_time', default_value='False',
             description='Use simulation clock if True (True/False)'
         )
-    
+
     declare_use_joint_state_publisher_gui_arg = DeclareLaunchArgument(
             'use_joint_state_publisher_gui', default_value='True',
             description='Use joint state publisher gui if True (True/False)'
         )
-    
+
     declare_robot_type_arg = DeclareLaunchArgument(
             'robot_type', 
             default_value='mpo_700',
             choices=['', 'mpo_700', 'mpo_500', 'mp_400', 'mp_500'],
             description='Robot Types\n\t'
         )
-    
+
     declare_arm_type_cmd = DeclareLaunchArgument(
             'arm_type', default_value='',
             choices=['', 'ur5', 'ur10', 'ur5e', 'ur10e', 'ec66', 'cs66'],
-            description='Arm Types - Supported Robots [mpo-700, mpo-500]\n\t'       
+            description='Arm Types - Supported Robots [mpo-700, mpo-500]\n\t'
         )
-    
+
     declare_use_imu_cmd = DeclareLaunchArgument(
             'use_imu', default_value='false',
             description='Enable IMU sensors if true'
@@ -150,7 +155,7 @@ def generate_launch_description():
             description='Enable Intel RealSense D435 camera if true\n'
                         '\tSupported Robots [mpo-700, mpo-500, mp-400]'
         )
-    
+
     declare_use_uss_cmd = DeclareLaunchArgument(
             'use_uss', default_value='false',
             description='Enable Ultrasonic sensors if true\n'
@@ -175,6 +180,11 @@ def generate_launch_description():
                         '\tSupported Robots [mpo-700]'
         )
 
+    declare_use_display_mode_cmd = DeclareLaunchArgument(
+            'display_mode', default_value='false',
+            description='Enable robot and joint state publishers if true\n'
+        )
+
     opq_function = OpaqueFunction(
         function=execution_stage,
         args=[
@@ -187,9 +197,10 @@ def generate_launch_description():
             LaunchConfiguration('use_uss'),
             LaunchConfiguration('scanner_type'),
             LaunchConfiguration('gripper_type'),
-            LaunchConfiguration('use_docking_adapter')
+            LaunchConfiguration('use_docking_adapter'),
+            LaunchConfiguration('display_mode')
         ])
-    
+
     return LaunchDescription([
         declare_use_sim_time_arg,
         declare_use_joint_state_publisher_gui_arg,
@@ -201,5 +212,6 @@ def generate_launch_description():
         declare_scanner_type_cmd,
         declare_gripper_type_cmd,
         declare_use_docking_adapter_cmd,
+        declare_use_display_mode_cmd,
         opq_function
     ])
