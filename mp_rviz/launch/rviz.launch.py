@@ -7,7 +7,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_context import LaunchContext
 from launch_ros.parameter_descriptions import ParameterValue
 import os
@@ -34,7 +34,7 @@ def execution_stage(context: LaunchContext,
     start_joint_state_publisher_gui_cmd = Node(
         package='joint_state_publisher_gui',
         executable='joint_state_publisher_gui',
-        condition=IfCondition(PythonExpression([use_joint_state_publisher_gui, ' and ', display_mod])),
+        condition=IfCondition(PythonExpression([use_joint_state_publisher_gui, ' and not ', display_mod])),
         name='joint_state_publisher_gui',
         output='screen',
         parameters=[{'use_sim_time': use_sim_time}],
@@ -45,7 +45,7 @@ def execution_stage(context: LaunchContext,
     start_joint_state_publisher_cmd = Node(
         package='joint_state_publisher',
         executable='joint_state_publisher',
-        condition=IfCondition(PythonExpression(['not ', use_joint_state_publisher_gui, ' and ', display_mod])),
+        condition=UnlessCondition(PythonExpression([use_joint_state_publisher_gui, ' and ', display_mod])),
         name='joint_state_publisher',
         output='screen',
         parameters=[{'use_sim_time': use_sim_time}],
@@ -56,7 +56,7 @@ def execution_stage(context: LaunchContext,
     start_robot_state_publisher_cmd = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
-        condition=IfCondition(PythonExpression([display_mod])),
+        condition=UnlessCondition(PythonExpression([display_mod])),
         name='robot_state_publisher',
         output='screen',
         parameters=[{'use_sim_time': use_sim_time, 
