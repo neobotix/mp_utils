@@ -14,6 +14,14 @@ Contributor: Adarsh Karan K P
       <child link="${name}_link"/>
     </joint>
 
+    <xacro:if value="${ur_dc == True}">
+      <xacro:property name="cabinet_mesh" value="cabinet_dc" />
+    </xacro:if>
+
+    <xacro:if value="${ur_dc == False}">
+      <xacro:property name="cabinet_mesh" value="cabinet_ac" />
+    </xacro:if>
+
     <link name="${name}_link">
       <inertial>
         <mass value="2"/>
@@ -23,13 +31,13 @@ Contributor: Adarsh Karan K P
       <visual>
         <origin rpy="0 0 -1.5708" xyz="0 0 0"/>
         <geometry>
-          <mesh filename="package://mp_components/meshes/cabin.dae" scale="0.001 0.001 0.001"/>
+          <mesh filename="package://mp_components/meshes/${cabinet_mesh}.dae" scale="0.001 0.001 0.001"/>
         </geometry>
       </visual>
       <collision>
         <origin rpy="0 0 -1.5708" xyz="0 0 0"/>
         <geometry>
-          <mesh filename="package://mp_components/meshes/cabin.dae" scale="0.001 0.001 0.001"/>
+          <mesh filename="package://mp_components/meshes/${cabinet_mesh}.dae" scale="0.001 0.001 0.001"/>
         </geometry>
       </collision>
     </link>
