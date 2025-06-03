@@ -22,6 +22,7 @@ def execution_stage(context: LaunchContext,
                     robot_type,
                     world,
                     arm_type,
+                    ur_dc,
                     imu_enable,
                     d435_enable,
                     uss_enable,
@@ -111,6 +112,7 @@ def execution_stage(context: LaunchContext,
     xacro_args = {
         'use_gz': 'true', # To force set fixed wheel joints
         'arm_type': arm_type.perform(context),
+        'use_ur_dc': ur_dc.perform(context),
         'use_imu': imu_enable.perform(context),
         'use_d435': d435_enable.perform(context),
         'use_uss': uss_enable.perform(context),
@@ -250,6 +252,11 @@ def generate_launch_description():
             description='Arm Types - Supported Robots [mpo-700, mpo-500]\n\t'        
         )
 
+    declare_ur_pwr_variant_cmd = DeclareLaunchArgument(
+            'use_ur_dc', default_value='False',
+            description='Set this argument to True if you have an UR arm with DC variant'
+        )
+
     declare_imu_cmd = DeclareLaunchArgument(
             'imu_enable', default_value='False',
             description='Enable IMU - Options: True/False'
@@ -292,6 +299,7 @@ def generate_launch_description():
             LaunchConfiguration('robot_type'),
             LaunchConfiguration('world'),
             LaunchConfiguration('arm_type'),
+            LaunchConfiguration('use_ur_dc'),
             LaunchConfiguration('imu_enable'),
             LaunchConfiguration('d435_enable'),
             LaunchConfiguration('use_uss'),
@@ -305,6 +313,7 @@ def generate_launch_description():
         declare_robot_type_arg,
         declare_world_name_arg,
         declare_arm_type_cmd,
+        declare_ur_pwr_variant_cmd,
         declare_imu_cmd,
         declare_realsense_cmd,
         declare_use_uss_cmd,

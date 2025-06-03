@@ -10,6 +10,7 @@ Contributor: Adarsh Karan K P
 
   <!-- arm parameters -->
   <xacro:arg name="arm_type" default="ec66"/>
+  <xacro:property name="arm_height" default="0.416" />
 
   <!-- Include macros -->
   <xacro:include filename="$(find elite_description)/urdf/xacros/elite_macro.xacro" />
@@ -39,7 +40,7 @@ Contributor: Adarsh Karan K P
     kinematics_parameters_file="$(arg kinematics_params_file)"
     physical_parameters_file="$(arg physical_params_file)"
     >
-    <origin xyz="0.133 0.0 0.416" rpy="0.0 0.0 -1.5708" />
+    <origin xyz="0.133 0.0 ${arm_height}" rpy="0.0 0.0 -1.5708" />
   </xacro:elite_robot>
 
   <!-- If gz simulation is used -->
