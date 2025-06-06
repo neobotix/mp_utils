@@ -84,16 +84,16 @@ Contributor: Adarsh Karan K P
 
     <!--Wheels-->
     <xacro:gazebo_mpo_500_wheel
-      wheel_prefix="mpo_500_wheel_front_right" 
+      wheel_prefix="wheel_front_right" 
       />
     <xacro:gazebo_mpo_500_wheel
-      wheel_prefix="mpo_500_wheel_back_right" 
+      wheel_prefix="wheel_back_right" 
       />
     <xacro:gazebo_mpo_500_wheel
-      wheel_prefix="mpo_500_wheel_front_left" 
+      wheel_prefix="wheel_front_left" 
       />
     <xacro:gazebo_mpo_500_wheel
-      wheel_prefix="mpo_500_wheel_back_left" 
+      wheel_prefix="wheel_back_left" 
       />
           
   </xacro:macro>
