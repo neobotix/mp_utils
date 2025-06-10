@@ -29,7 +29,7 @@ Contributor: Adarsh Karan K P
 
     <!--Differential Drive and Joint States Publisher Plugin-->
     <xacro:gazebo_diff_drive_plugin
-      joint_prefix="mp_500_wheel"
+      joint_prefix="wheel"
       update_rate="100"
       wheel_separation="${wheel_separation}"
       wheel_diameter="0.260" 
@@ -74,14 +74,14 @@ Contributor: Adarsh Karan K P
 
     <!--Wheels-->
     <xacro:gazebo_mp_500_wheel
-      wheel_prefix="mp_500_wheel_left"
+      wheel_prefix="wheel_left"
       />
     <xacro:gazebo_mp_500_wheel
-      wheel_prefix="mp_500_wheel_right"
+      wheel_prefix="wheel_right"
       />
     <!--Caster Wheel-->
     <xacro:gazebo_mp_500_caster_wheel
-      wheel_prefix="mp_500_caster_wheel"
+      wheel_prefix="caster_wheel"
       />
 
   </xacro:macro>

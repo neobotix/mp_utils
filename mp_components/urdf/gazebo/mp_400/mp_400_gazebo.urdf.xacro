@@ -29,7 +29,7 @@ Contributor: Adarsh Karan K P
 
     <!--Differential Drive and Joint States Publisher Plugin-->
     <xacro:gazebo_diff_drive_plugin
-      joint_prefix="mp_400_fixed_wheel"
+      joint_prefix="fixed_wheel"
       update_rate="100"
       wheel_separation="${wheel_separation}"
       wheel_diameter="0.1520" 
@@ -74,24 +74,24 @@ Contributor: Adarsh Karan K P
 
     <!--Caster Wheels-->
     <xacro:gazebo_mp_400_caster_wheel
-      wheel_prefix="mp_400_caster_wheel_front_left"
+      wheel_prefix="caster_wheel_front_left"
       />
     <xacro:gazebo_mp_400_caster_wheel
-      wheel_prefix="mp_400_caster_wheel_back_left"
+      wheel_prefix="caster_wheel_back_left"
       />
     <xacro:gazebo_mp_400_caster_wheel
-      wheel_prefix="mp_400_caster_wheel_front_right"
+      wheel_prefix="caster_wheel_front_right"
       />
     <xacro:gazebo_mp_400_caster_wheel
-      wheel_prefix="mp_400_caster_wheel_back_right"
+      wheel_prefix="caster_wheel_back_right"
       />
 
     <!--Fixed Wheels-->
     <xacro:gazebo_mp_400_fixed_wheel
-      wheel_prefix="mp_400_fixed_wheel_left"
+      wheel_prefix="fixed_wheel_left"
       />
     <xacro:gazebo_mp_400_fixed_wheel
-      wheel_prefix="mp_400_fixed_wheel_right"
+      wheel_prefix="fixed_wheel_right"
       />
 
   </xacro:macro>
