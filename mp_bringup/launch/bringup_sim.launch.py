@@ -81,7 +81,7 @@ def execution_stage(context: LaunchContext,
             bringup_dir,
             'configs',
             arm_manufacturer,
-            'controllers.yaml'
+            'simulation_controllers.yaml'
         )
 
         # Generates a final YAML parameter file from the controllers template (with substitutions applied),
@@ -89,7 +89,7 @@ def execution_stage(context: LaunchContext,
         simulation_controllers, shutdown_handler = generate_final_yaml(
             context,
             controllers_yaml,
-            file_name='simulation_controllers.yaml',
+            file_name='simulation_controllers_final.yaml',
             cleanup_enabled=False
         )
         launch_actions.extend(shutdown_handler)
