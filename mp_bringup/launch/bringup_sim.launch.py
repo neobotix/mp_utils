@@ -28,7 +28,8 @@ def execution_stage(context: LaunchContext,
                     uss_enable,
                     scanner_type,
                     gripper_type,
-                    docking_adapter):    
+                    docking_adapter,
+                    legacy):    
 
     launch_actions = []
 
@@ -123,6 +124,7 @@ def execution_stage(context: LaunchContext,
         'use_docking_adapter': docking_adapter.perform(context),
         'include_arm_ros2_control': include_arm_ros2_control,
         'include_gripper_ros2_control': include_gripper_ros2_control,
+        'use_legacy': legacy.perform(context)
     }
 
     # Get the robot description xacro file based on the robot type
@@ -276,7 +278,7 @@ def generate_launch_description():
 
     declare_scanner_type_cmd = DeclareLaunchArgument(
             'scanner_type', default_value='sick_s300',
-            choices=['', 'sick_s300', 'sick_microscan3'],
+            choices=['', 'sick_s300', 'sick_microscan3', 'sick_nanoscan3'],
             description='Type of laser scanner to use\n\t'
         )
 
@@ -292,6 +294,11 @@ def generate_launch_description():
                         '\tSupported Robots [mpo-700]'
         )
 
+    declare_use_legacy_cmd = DeclareLaunchArgument(
+            'use_legacy', default_value='False',
+            description='Set legacy to True if you are using the old model'
+        )
+
     opq_function = OpaqueFunction(
         function=execution_stage,
         args=[
@@ -305,7 +312,8 @@ def generate_launch_description():
             LaunchConfiguration('use_uss'),
             LaunchConfiguration('scanner_type'),
             LaunchConfiguration('gripper_type'),
-            LaunchConfiguration('use_docking_adapter')
+            LaunchConfiguration('use_docking_adapter'),
+            LaunchConfiguration('use_legacy')
         ])
 
     return LaunchDescription([
@@ -320,5 +328,6 @@ def generate_launch_description():
         declare_scanner_type_cmd,
         declare_gripper_type_cmd,
         declare_use_docking_adapter_cmd,
+        declare_use_legacy_cmd,
         opq_function
     ])
