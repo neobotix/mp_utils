@@ -36,11 +36,12 @@ Contributor: Adarsh Karan K P
       commandTopic="cmd_vel"
       tf_topic="tf"
       />
-    <!--Lidar Sensors-->
+
+    <!-- Lidar Sensor-1 -->
     <xacro:gazebo_lidar_sensor
       sensor_name="lidar_1_sensor"
       link_name="lidar_1_link"
-      update_rate="100"
+      update_rate="15"
       min_range="0.10"
       max_range="30.0"
       horizontal_samples="720"
@@ -51,10 +52,11 @@ Contributor: Adarsh Karan K P
       topic_name="scan"
       visualize="false"
       />
+    <!-- Lidar Sensor-2 -->
     <xacro:gazebo_lidar_sensor
       sensor_name="lidar_2_sensor"
       link_name="lidar_2_link"
-      update_rate="100"
+      update_rate="15"
       min_range="0.10"
       max_range="30.0"
       horizontal_samples="720"
@@ -63,7 +65,7 @@ Contributor: Adarsh Karan K P
       noise_mean="0.0"
       noise_stddev="0.01"
       topic_name="scan2"
-      visualize="true"
+      visualize="false"
       />
     
     <!-- IMU Sensor -->
