@@ -90,6 +90,7 @@ Contributor: Adarsh Karan K P
 
       <xacro:ur_ros2_control
         name="$(arg arm_type)"
+        ur_type="$(arg arm_type)"
         tf_prefix="$(arg tf_prefix)"
         kinematics_parameters_file="$(arg kinematics_params)"
         transmission_hw_interface="$(arg transmission_hw_interface)"
